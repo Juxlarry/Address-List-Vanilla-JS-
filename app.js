@@ -23,6 +23,11 @@ form.addEventListener('submit', addAddress);
 //clear event listener 
 clearBtn.addEventListener('click', clearItems);
 
+
+//load DOM items 
+window.addEventListener("DOMContentLoaded", setupItems);
+
+
 //***Functions ****/
  function addAddress(e){
      e.preventDefault(); 
@@ -30,34 +35,9 @@ clearBtn.addEventListener('click', clearItems);
     const id = new Date().getTime().toString(); 
     // console.log(id); 
     if(value  && !editFlag){
-        const element = document.createElement("article"); 
-        //add class
-        element.classList.add("address-item");
-        //add id 
-        const attr  = document.createAttribute('data-id');
-        attr.value = id; 
-        element.setAttributeNode(attr);
-        element.innerHTML = `<p class="title">${value}</p>
-        <div class="btn-container">
-            <button type="button" class="edit-btn">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button type="button" class="delete-btn">
-               <i class="fas fa-trash"></i>
-            </button>
-        </div>`;
 
-        const deleteBtn = element.querySelector('.delete-btn');
-        const editBtn = element.querySelector('.edit-btn');
-
-        deleteBtn.addEventListener("click", deleteAddress);
-
-        editBtn.addEventListener("click", editAddress);
+        createListItem(id, value); 
        
-
-        //add child 
-        list.appendChild(element);
-
         //display alert
         displayAlert( "address added to  list", "success");
         
@@ -65,7 +45,7 @@ clearBtn.addEventListener('click', clearItems);
         container.classList.add ('show-container');
 
         //add to local storage
-        addToLocalStorage(id, value)
+        addToLocalStorage(id, value);
 
         //set back to default
         setBackToDefault(); 
@@ -111,7 +91,7 @@ function clearItems(){
     displayAlert("items cleared ", "success"); 
 
     setBackToDefault();
-    // localStorage.removeItem('list');
+    localStorage.removeItem('list');
 }
 
 //function to delete address item 
@@ -144,7 +124,6 @@ function editAddress(e){
     address.value = editElement.innerHTML; 
     editFlag = true; 
     editId = element.dataset.id; 
-    // content.value = "edit";  
 }
 
  //set back to defaults
@@ -152,7 +131,6 @@ function editAddress(e){
     address.value =""; 
     editFlag = false 
     editId = ""; 
-    // content.value = "add";
     // submit.textContent = `<span>add <i class="fa fa-plus"></i></span>`
 }
 
@@ -160,13 +138,96 @@ function editAddress(e){
 //*** Local Storage ****/
 
 function addToLocalStorage(id, value){
-    console.log("added to local storage")
+    const address = {id, value};    
+    let items = getLocalStorage();
+    console.log(items);
+
+    items.push(address); 
+    localStorage.setItem('list', JSON.stringify(items));  
 }
 
 function removeFromLocalStorage(id) {
+    let items = getLocalStorage();
+    
+    items = items.filter((item) =>{
 
+        if(item.id !==id){ 
+            return item; 
+        }
+    });
+
+    localStorage.setItem('list', JSON.stringify(items)); 
 }
 
 function editLocalStorage(id, value){
+    let items = getLocalStorage(); 
+
+    items = items.map((item) =>{
+        if(item.id === id){
+            item.value = value; 
+        }
+
+        return item;
+    });
+    localStorage.setItem('list', JSON.stringify(items)); 
+}
+
+// localStorage API 
+
+// setItem 
+
+// getLocaStorage
+function getLocalStorage(){
+    return  localStorage.getItem('list')?
+        JSON.parse(localStorage.getItem('list'))
+        : []; 
+}
+
+// removeItem
+
+// save as strings 
+
+// ***** SETUP ITEMS ******
+function setupItems(){
+    let items = getLocalStorage(); 
+
+    if(items.length >0){
+        items.forEach((item) =>{
+            createListItem(item.id, item.value);  
+
+        })
+        container.classList.add("show-container");
+    }
+}
+
+//Create List Items 
+function createListItem(id, value) {
+    const element = document.createElement("article"); 
+    //add class
+    element.classList.add("address-item");
+    //add id 
+    const attr  = document.createAttribute('data-id');
+    attr.value = id; 
+    element.setAttributeNode(attr);
+    element.innerHTML = `<p class="title">${value}</p>
+    <div class="btn-container">
+        <button type="button" class="edit-btn">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button type="button" class="delete-btn">
+           <i class="fas fa-trash"></i>
+        </button>
+    </div>`;
+
+    const deleteBtn = element.querySelector('.delete-btn');
+    const editBtn = element.querySelector('.edit-btn');
+
+    deleteBtn.addEventListener("click", deleteAddress);
+
+    editBtn.addEventListener("click", editAddress);
+   
+
+    //add child 
+    list.appendChild(element);
 
 }
